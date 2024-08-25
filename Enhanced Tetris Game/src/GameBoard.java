@@ -9,6 +9,7 @@ public class GameBoard extends JPanel {
     private Color[][] grid;  // Your game grid
     private GameState gameState;  // Reference to the game state
     private Timer timer;
+    private JButton backButton;  // Back button
 
     public GameBoard() {
         initBoard();
@@ -16,20 +17,40 @@ public class GameBoard extends JPanel {
 
     private void initBoard() {
         setBackground(Color.BLACK);
-        setPreferredSize(new Dimension(BOARD_WIDTH * TILE_SIZE, BOARD_HEIGHT * TILE_SIZE));
-        grid = new Color[BOARD_HEIGHT][BOARD_WIDTH];  // Initialize the grid
-        gameState = new GameState(this);  // Initialize GameState with reference to GameBoard
+        setLayout(new BorderLayout());
 
-        GameControls gameControls = new GameControls(this, gameState);  // Initialize GameControls
-        addKeyListener(gameControls.getKeyAdapter());  // Add key listener
-        setFocusable(true);  // Ensure GameBoard can receive focus
-        requestFocusInWindow();  // Request focus for key events
+        // Initialize the grid and game state
+        grid = new Color[BOARD_HEIGHT][BOARD_WIDTH];
+        gameState = new GameState(this);
 
-        timer = new Timer(400, e -> {
-            if (!gameState.isPaused() && !gameState.isGameOver()) {
-                gameState.updateGame(grid);
-                repaint();  // Trigger the repaint to update the game board
+        // Create a JPanel to hold the game and the back button
+        JPanel gamePanel = new JPanel() {
+            @Override
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                gameState.drawGrid(g, grid, TILE_SIZE, BOARD_WIDTH, BOARD_HEIGHT);
+                gameState.drawPiece(g, TILE_SIZE);
             }
+        };
+        gamePanel.setPreferredSize(new Dimension(BOARD_WIDTH * TILE_SIZE, BOARD_HEIGHT * TILE_SIZE));
+        gamePanel.setBackground(Color.BLACK);
+
+        // Create the back button
+        backButton = new JButton("Back to Main Menu");
+        backButton.addActionListener(e -> {
+            timer.stop();  // Stop the game timer
+            new MainMenu().setVisible(true);  // Go back to the main menu
+            SwingUtilities.getWindowAncestor(this).dispose();  // Close the game window
+        });
+
+        // Add the game panel to the center and the back button to the bottom
+        add(gamePanel, BorderLayout.CENTER);
+        add(backButton, BorderLayout.SOUTH);
+
+        // Start the game timer
+        timer = new Timer(400, e -> {
+            gameState.updateGame(grid);
+            gamePanel.repaint();  // Trigger the repaint to update the game board
         });
         timer.start();
     }
@@ -40,22 +61,5 @@ public class GameBoard extends JPanel {
 
     public Color[][] getGrid() {
         return grid;
-    }
-
-    @Override
-    protected void paintComponent(Graphics g) {
-        super.paintComponent(g);
-        gameState.drawGrid(g, grid, TILE_SIZE, BOARD_WIDTH, BOARD_HEIGHT);
-        gameState.drawPiece(g, TILE_SIZE);
-
-        if (gameState.isPaused()) {
-            drawPauseMessage(g);  // Draw the pause message
-        }
-    }
-
-    private void drawPauseMessage(Graphics g) {
-        g.setColor(Color.WHITE);
-        g.setFont(new Font("Arial", Font.BOLD, 30));
-        g.drawString("Paused", getWidth() / 2 - 50, getHeight() / 2);
     }
 }

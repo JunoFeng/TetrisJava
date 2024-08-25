@@ -4,19 +4,21 @@ import java.awt.*;
 public class SplashWindow extends JWindow {
 
     public SplashWindow() {
-        JLabel label = new JLabel("Welcome to Enhanced Tetris!", SwingConstants.CENTER);
-        label.setFont(new Font("Arial", Font.BOLD, 24));
-        label.setOpaque(true);
-        label.setBackground(Color.BLACK);
-        label.setForeground(Color.WHITE);
-        add(label);
-        setSize(400, 200);
+        // Load the image from the specified path
+        ImageIcon splashImage = new ImageIcon("D:\\Tetris Game\\Enhanced Tetris Game\\src\\TetrisGame.jpg");
+        JLabel imageLabel = new JLabel(splashImage);
+
+        // Add the image to the window
+        add(imageLabel);
+
+        // Set the size of the window to match the image size
+        setSize(splashImage.getIconWidth(), splashImage.getIconHeight());
         setLocationRelativeTo(null);
 
         // Show splash screen for 3 seconds, then transition to MainMenu
         Timer timer = new Timer(3000, e -> {
             dispose();
-            new MainMenu();
+            new MainMenu().setVisible(true);
         });
         timer.setRepeats(false);
         timer.start();

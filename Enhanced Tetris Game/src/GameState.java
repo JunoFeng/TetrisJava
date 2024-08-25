@@ -1,4 +1,5 @@
 import java.awt.*;
+import javax.swing.JOptionPane;
 
 public class GameState {
     private Tetromino currentPiece;
@@ -158,6 +159,10 @@ public class GameState {
                 g.fillRect(p.x * tileSize, p.y * tileSize, tileSize, tileSize);
             }
         }
+    }
+    // Show the Game Over dialog
+    private void showGameOverDialog() {
+        JOptionPane.showMessageDialog(gameBoard, "Game Over! You have lost the game.", "Game Over", JOptionPane.INFORMATION_MESSAGE);
     }
 
     // Check if the Tetromino can be placed on the grid

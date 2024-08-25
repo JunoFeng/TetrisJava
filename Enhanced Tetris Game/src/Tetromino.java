@@ -1,4 +1,5 @@
 import java.awt.*;
+import java.util.Arrays;
 import java.util.Random;
 
 public class Tetromino {
@@ -36,71 +37,105 @@ public class Tetromino {
         }
     }
 
-    // Rotate the Tetromino 90 degrees clockwise
+    // Rotate the Tetromino 90 degrees clockwise around its center
     public void rotate(Color[][] grid) {
         if (color == Color.YELLOW) {
             return; // O shape does not rotate
         }
 
-        // Apply rotation
+        // Backup the current coordinates in case the rotation fails
+        Point[] originalCoordinates = Arrays.copyOf(coordinates, coordinates.length);
+
+        // Calculate the center of the Tetromino (average of all points)
+        Point center = getCenter();
+
+        // Rotate the Tetromino around its center
         for (Point p : coordinates) {
-            int temp = p.x;
-            p.x = -p.y;
-            p.y = temp;
+            int newX = center.x + (p.y - center.y);
+            int newY = center.y - (p.x - center.x);
+            p.x = newX;
+            p.y = newY;
         }
 
-        // Check bounds and apply wall kick if necessary
-        applyWallKick(grid);
-    }
-
-    private void applyWallKick(Color[][] grid) {
-        int gridWidth = grid[0].length;
-        int gridHeight = grid.length;
-
-        for (Point p : coordinates) {
-            // Check if the piece is outside the left boundary
-            if (p.x < 0) {
-                shiftRight(-p.x);  // Shift right to bring it into the grid
-            }
-            // Check if the piece is outside the right boundary
-            else if (p.x >= gridWidth) {
-                shiftLeft(p.x - (gridWidth - 1));  // Shift left to bring it into the grid
-            }
-            // Check if the piece is outside the top boundary (which is allowed but can be adjusted if needed)
-            if (p.y < 0) {
-                shiftDown(-p.y);  // Shift down to bring it into the grid
-            }
-            // Check if the piece is outside the bottom boundary
-            else if (p.y >= gridHeight) {
-                shiftUp(p.y - (gridHeight - 1));  // Shift up to bring it into the grid
+        // Adjust Tetromino to stay within the grid bounds after rotation
+        if (!adjustWithinBounds(grid)) {
+            // If the adjustment fails (collision), revert to the original coordinates
+            for (int i = 0; i < coordinates.length; i++) {
+                coordinates[i] = originalCoordinates[i];
             }
         }
     }
 
-    private void shiftRight(int steps) {
+    // Get the center of the Tetromino
+    private Point getCenter() {
+        int sumX = 0, sumY = 0;
         for (Point p : coordinates) {
-            p.x += steps;
+            sumX += p.x;
+            sumY += p.y;
         }
+        return new Point(sumX / coordinates.length, sumY / coordinates.length);
     }
 
-    private void shiftLeft(int steps) {
-        for (Point p : coordinates) {
-            p.x -= steps;
-        }
-    }
+    // Adjust Tetromino to stay within the grid bounds after rotation and apply wall kicks
+    private boolean adjustWithinBounds(Color[][] grid) {
+        int minX = Integer.MAX_VALUE;
+        int maxX = Integer.MIN_VALUE;
+        int minY = Integer.MAX_VALUE;
+        int maxY = Integer.MIN_VALUE;
 
-    private void shiftDown(int steps) {
+        // Find the minimum and maximum X and Y positions of the Tetromino
         for (Point p : coordinates) {
-            p.y += steps;
+            if (p.x < minX) {
+                minX = p.x;
+            }
+            if (p.x > maxX) {
+                maxX = p.x;
+            }
+            if (p.y < minY) {
+                minY = p.y;
+            }
+            if (p.y > maxY) {
+                maxY = p.y;
+            }
         }
-    }
 
-    private void shiftUp(int steps) {
+        // Shift right if out of left bounds
+        if (minX < 0) {
+            for (Point p : coordinates) {
+                p.x -= minX;
+            }
+        }
+
+        // Shift left if out of right bounds
+        if (maxX >= grid[0].length) {
+            for (Point p : coordinates) {
+                p.x -= (maxX - grid[0].length + 1);
+            }
+        }
+
+        // Shift down if out of top bounds
+        if (minY < 0) {
+            for (Point p : coordinates) {
+                p.y -= minY;
+            }
+        }
+
+        // Shift up if out of bottom bounds
+        if (maxY >= grid.length) {
+            for (Point p : coordinates) {
+                p.y -= (maxY - grid.length + 1);
+            }
+        }
+
+        // Check for collisions with existing blocks on the grid
         for (Point p : coordinates) {
-            p.y -= steps;
+            if (p.y >= 0 && (p.x < 0 || p.x >= grid[0].length || grid[p.y][p.x] != null)) {
+                return false;  // Collision detected, invalid rotation
+            }
         }
-    }
 
+        return true;  // Valid rotation
+    }
 
     public static Tetromino getRandomPiece() {
         Random random = new Random();
