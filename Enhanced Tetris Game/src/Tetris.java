@@ -30,6 +30,10 @@ public class Tetris extends JFrame {
         int width = BOARD_WIDTH * TILE_SIZE;
         int height = BOARD_HEIGHT * TILE_SIZE;
 
+        // Add extra space for the button panel and footer label
+        int buttonPanelHeight = 70;  // Approximate height for the button panel and footer
+        height += buttonPanelHeight;
+
         // Add some extra space for window decorations (borders, title bar, etc.)
         Insets insets = getInsets();
         width += insets.left + insets.right;
